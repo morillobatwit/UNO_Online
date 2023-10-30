@@ -1,6 +1,6 @@
 import pygame
 from settings import Settings
-from card import UnoCardView, UnoCard, CardType, CardColor
+from card import UnoCardView, UnoCardViewData, UnoCard, CardType, CardColor
 import sys
 
 class Game:
@@ -18,12 +18,32 @@ class Game:
             (self.settings.screen_width, self.settings.screen_height))
         self.screen_rect = self.screen.get_rect()      
 
-        card = UnoCardView(UnoCard(CardType.THREE, CardColor.RED))
-        card.rect.center = (self.settings.screen_width / 2, self.settings.screen_height / 2)
+        number_card = self.build_card(CardType.NINE, CardColor.GREEN)
+        number_card.rect.topleft = (0, 0)  
+        
+        skip_card = self.build_card(CardType.SKIP, CardColor.BLUE)
+        skip_card.rect.midtop = (self.settings.screen_width / 2, 0)  
+
+        draw2_card = self.build_card(CardType.DRAW_TWO, CardColor.RED)
+        draw2_card.rect.topright = (self.settings.screen_width, 0)  
+
+        reverse_card = self.build_card(CardType.REVERSE, CardColor.YELLOW)
+        reverse_card.rect.bottomleft = (0, self.settings.screen_height)  
+
+        wild_card = self.build_card(CardType.WILD, CardColor.DARK)
+        wild_card.rect.midbottom = (self.settings.screen_width / 2, self.settings.screen_height)  
+
+        wild4_card = self.build_card(CardType.WILD_DRAW_FOUR, CardColor.DARK)
+        wild4_card.rect.bottomright = (self.settings.screen_width, self.settings.screen_height)  
 
         # Create a sprite group
         self.card_group = pygame.sprite.Group()
-        self.card_group.add(card)
+        self.card_group.add(number_card)
+        self.card_group.add(skip_card)
+        self.card_group.add(draw2_card)
+        self.card_group.add(reverse_card)
+        self.card_group.add(wild_card)
+        self.card_group.add(wild4_card)
 
     def run_game(self):
         """The main game loop."""
@@ -50,6 +70,13 @@ class Game:
         self.card_group.update()
         self.card_group.draw(self.screen)        
         pygame.display.flip()
+
+    def build_card(self, card_type, card_color):
+        card = UnoCard(card_type, card_color)
+        card_view_dta = UnoCardViewData(card)
+        card_view = UnoCardView(card_view_dta)
+
+        return card_view
 
 
 if __name__ == "__main__":
