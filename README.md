@@ -1,18 +1,11 @@
 # UNO Online
-## Install pygame
+## Install project requirements
 ```sh
-python -m pip install -U pygame --user
+pip install -r requirements.txt
 ```
 
-if using Anaconda:
-```sh
-conda install -c anaconda pygame
-```
 ## Run Test
-Displays a card example on a window
-```sh
-cd UNO_Online
-```
+Displays card examples
 
 ```sh
 python run_test.py
