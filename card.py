@@ -28,6 +28,17 @@ class CardColor(Enum):
 
 class UnoCard:
     def __init__(self, card_type, card_color):
+        """
+        Represents an UNO card
+
+        Parameters
+        ----------
+        card_type : CardType
+            a CardType element(Example: CardType.ONE).
+        card_color : CardColor
+            a CardColor element(Example: CardType.RED).
+
+        """
         self._type = card_type
         self._color = card_color
 
