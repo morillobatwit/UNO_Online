@@ -50,85 +50,220 @@ class UnoCard:
     def color(self):
         return self._color    
 
-class UnoCardViewData:
-    # Constants for Unicode values
-    SKIP = '\U0001F6C7'
-    REVERSE = '\U0001F5D8'
-    DRAW_TWO = '\u2BBA'
+class UnoCardView(pygame.sprite.Sprite):
 
-    def __init__(self, uno_card):
+    def __init__(self, uno_card, width, height, inner_width, inner_height,
+                 center_content, edge_content=None): 
         super().__init__()
         self._uno_card = uno_card
-        self._display_text = self._card_type_unicode_value(uno_card)
-
-    @property
-    def uno_card(self):
-        return self._uno_card
-    
-    @property
-    def display_text(self):
-        return self._display_text
-
-    def _card_type_unicode_value(self, uno_card):
-        if uno_card.type == CardType.SKIP:
-            return UnoCardViewData.SKIP
-        if uno_card.type == CardType.REVERSE:
-            return UnoCardViewData.REVERSE
-        if uno_card.type == CardType.DRAW_TWO:
-            return UnoCardViewData.DRAW_TWO        
-        else:
-            return str(uno_card.type.value)
-
-
-class UnoCardView(pygame.sprite.Sprite):
-    # Constants for card dimensions
-    WIDTH = 175
-    HEIGHT = WIDTH * 1.5
-    INNER_WIDTH = WIDTH - 10
-    INNER_HEIGHT = HEIGHT - 15
-    FONT_SIZE = 100
-    FONT_COLOR = (255, 255, 255)    
-
-    def __init__(self, u_card_v_dta):
-        super().__init__()
-        self._uno_card = u_card_v_dta.uno_card
-        self._display_text = u_card_v_dta.display_text
         self._position = Vector2(0, 0)
-        self.card_color = self._uno_card.color.value
+        self._card_color = self._uno_card.color.value
+       
         
-        # CARD 
-        self.rect = pygame.Rect(self._position, (UnoCardView.WIDTH, UnoCardView.HEIGHT))
+        # CARD OUTER RECTANGLE
+        self.rect = pygame.Rect(self._position, (width,
+                                                 height))
         self.image = pygame.Surface(self.rect.size, pygame.SRCALPHA)
-
-        # INNER RECT 
-        self.inner_rect = pygame.Rect(self._position, (UnoCardView.INNER_WIDTH, UnoCardView.INNER_HEIGHT))
-        self.inner_rect.center = (self.rect.width / 2, self.rect.height /2)
-
-        font = pygame.font.Font('assets/Noto.ttf', UnoCardView.FONT_SIZE)
-        small_font = pygame.font.Font('assets/Noto.ttf', 40)
-
-        self.text_surface = font.render(self._display_text, True, UnoCardView.FONT_COLOR)
-        self.text_rect = self.text_surface.get_rect(center=self.inner_rect.center)
-
-        self.text_topright = small_font.render(self._display_text, True, UnoCardView.FONT_COLOR)   
-        self.text_topright.set_alpha(127)
-        self.text_recttr = self.text_topright.get_rect(topleft=self.inner_rect.topleft)     
-
-        self.text_botright = small_font.render(self._display_text, True, UnoCardView.FONT_COLOR)  
-        self.text_botright.set_alpha(127) 
-        self.text_rectbr = self.text_botright.get_rect(bottomright=self.inner_rect.bottomright)  
+        
+        # CARD INNER RECTANGLE
+        self._inner_rect_size = (inner_width,
+                                inner_height)
+        self._inner_rect = pygame.Rect(self._position, self._inner_rect_size)
+        self._inner_rect.center = (self.rect.width / 2, self.rect.height /2)
+        
+        # Sets the center content of the card
+        self._center_content = center_content
+        self._center_content_rect = center_content.get_rect(center=self._inner_rect.center)
+        
+        # Edge content
+        self._edge_content = edge_content if edge_content else center_content
+        
+        # Sets the top left content of the card
+        self.tl_content = self._edge_content
+        self.tl_content.set_alpha(127)
+        self.tl_content_rect = self.tl_content.get_rect(topleft=self._inner_rect.topleft)
+        
+        # Sets the bottom right content of the card
+        self.br_content = self._edge_content
+        self.br_content.set_alpha(127)
+        self.br_content_rect = self.br_content.get_rect(bottomright=self._inner_rect.bottomright)
 
         self.draw_card()
-
+        
     def draw_card(self):
-        pygame.draw.rect(self.image, self.card_color, self.rect, border_radius=15)
+        pygame.draw.rect(self.image, self._card_color, self.rect, border_radius=15)
+        self.image.blit(self._center_content, self._center_content_rect)
+        self.image.blit(self.tl_content, self.tl_content_rect)
+        self.image.blit(self.br_content, self.br_content_rect) 
         
-        self.image.blit(self.text_surface, self.text_rect)
-        self.image.blit(self.text_topright, self.text_recttr)
-        self.image.blit(self.text_botright, self.text_rectbr)  
         
+    @property
+    def uno_card(self):
+        return self._uno_card     
+    
+    @property
+    def center_content(self):
+        return self._center_content      
+    
+    @property
+    def edge_content(self):
+        return self._edge_content  
 
+    @property
+    def color(self):
+        return self._uno_card.color
+
+    @property
+    def type(self):
+        return self._uno_card.type   
+
+    
+class UnoCardViewBuilder:
+    
+    def __init__(self):
+        self.reset()
+    
+    def reset(self):
+        self._uno_card = \
+        self._center_content = \
+        self._edge_content = \
+        self._width = \
+        self._height = \
+        self._i_width = \
+        self._i_height = None
+        
+    def set_uno_card(self, uno_card):
+        self._uno_card = uno_card
+        
+    def set_center_content(self, center_content):
+        self._center_content = center_content
+
+    def set_edge_content(self, edge_content):
+        self._edge_content = edge_content  
+        
+    def set_view_width(self, width):
+        self._width = width     
+        
+    def set_view_height(self, height):
+        self._height = height   
+        
+    def set_inner_view_width(self, width):
+        self._i_width = width     
+        
+    def set_inner_view_height(self, height):
+        self._i_height = height         
+        
+        
+    def build_view(self):
+        uno_card_view = UnoCardView(self._uno_card,
+                                      self._width,
+                                      self._height,
+                                      self._i_width,
+                                      self._i_height,
+                                      self._center_content,
+                                      self._edge_content)
+        
+        self.reset()
+        return uno_card_view
+    
+class UnoCardViewDirector:
+    
+    def __init__(self, builder, resource_manager, settings):
+        self._builder = builder
+        self._resource_manager = resource_manager
+        self._settings = settings
+        
+    def create_card_view(self, uno_card):  
+        if uno_card.type == CardType.SKIP:
+            return self._create_skip_card_view(uno_card) 
+        elif uno_card.type == CardType.REVERSE:
+            return self._create_reverse_card_view(uno_card) 
+        elif uno_card.type == CardType.DRAW_TWO:
+            return self._create_draw_two_card_view(uno_card) 
+        elif uno_card.type == CardType.WILD_DRAW_FOUR:
+            return self._create_draw_four_card_view(uno_card) 
+        elif uno_card.type == CardType.WILD:
+            return self._create_wild_card_view(uno_card) 
+        else:
+            return self._create_number_card_view(uno_card)        
+
+    def _build_view(self, uno_card, center_content, edge_content=None):
+        if not edge_content:
+            edge_content = center_content.copy()
+        
+        
+        edge_content_ratio = self._settings.EDGE_CONTENT_RATIO
+        edge_content_w = pygame.Surface.get_width(edge_content) * edge_content_ratio
+        edge_content_h = pygame.Surface.get_height(edge_content) * edge_content_ratio
+        
+        edge_content = pygame.transform.scale(edge_content,
+                                      (edge_content_w,
+                                       edge_content_h))   
+        
+        self._builder.set_uno_card(uno_card)
+        self._builder.set_center_content(center_content)
+        self._builder.set_edge_content(edge_content)
+        self._builder.set_view_width(self._settings.CARD_WIDTH)
+        self._builder.set_view_height(self._settings.CARD_HEIGHT)
+        self._builder.set_inner_view_width(self._settings.CARD_INNER_WIDTH)
+        self._builder.set_inner_view_height(self._settings.CARD_INNER_HEIGHT)
+        
+        return self._builder.build_view() 
+    
+    def _create_special_edge_card_view(self,
+                                       uno_card,
+                                       center_content_lbl, edge_label):
+        center_content = self._resource_manager.get_image(center_content_lbl)
+        
+        font = self._resource_manager.load_font(self._settings.FONT_DIR,
+                                               self._settings.CARD_CENTER_FONT_SIZE)     
+
+        edge_content = font.render(edge_label,
+                                         True,
+                                         self._settings.CARD_FONT_COLOR) 
+        
+        return self._build_view(uno_card, center_content, edge_content)        
+
+    def _create_number_card_view(self, uno_card):
+        font = self._resource_manager.load_font(self._settings.FONT_DIR,
+                                               self._settings.CARD_CENTER_FONT_SIZE)
+
+        center_content = font.render(str(uno_card.type.value),
+                                     True,
+                                     self._settings.CARD_FONT_COLOR)
+        
+        return self._build_view(uno_card, center_content)
+    
+    def _create_skip_card_view(self, uno_card):
+        center_content = self._resource_manager.get_image(
+            self._settings.ImageResources.SKIP_DIR)
+        return self._build_view(uno_card, center_content)
+    
+    def _create_reverse_card_view(self, uno_card):
+        center_content = self._resource_manager.get_image(
+            self._settings.ImageResources.REVERSE_DIR)
+        return self._build_view(uno_card, center_content)
+    
+    def _create_draw_two_card_view(self, uno_card):
+        return self._create_special_edge_card_view(
+            uno_card,
+            self._settings.ImageResources.DRAW_TWO_DIR,
+            self._settings.DRAW_TWO_EDGE_CONTENT)     
+
+    def _create_draw_four_card_view(self, uno_card):
+        return self._create_special_edge_card_view(
+            uno_card,
+            self._settings.ImageResources.DRAW_FOUR_DIR,
+            self._settings.DRAW_FOUR_EDGE_CONTENT) 
+
+    def _create_wild_card_view(self, uno_card):
+        return self._create_special_edge_card_view(
+            uno_card,
+            self._settings.ImageResources.DRAW_FOUR_DIR,'')  
 
   
 
+        
+
     
+        

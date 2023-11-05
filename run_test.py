@@ -1,6 +1,7 @@
 import pygame
 from settings import Settings
-from card import UnoCardView, UnoCardViewData, UnoCard, CardType, CardColor
+from card import UnoCard, CardType, CardColor, UnoCardViewBuilder, UnoCardViewDirector
+from resource_manager import ResourceManager
 import sys
 
 class Game:
@@ -12,6 +13,18 @@ class Game:
         pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
         self.settings = Settings()
         self.clock = pygame.time.Clock()
+        
+        # Sets up game resources
+        self.resource_manager = ResourceManager()
+        for img in self.settings.ImageResources:
+            self.resource_manager.add_image(img, pygame.image.load(img.value))
+        
+        # Card View Builder/Director
+        card_builder = UnoCardViewBuilder()
+        
+        self.card_view_director = UnoCardViewDirector(card_builder,
+                                                 self.resource_manager,
+                                                 self.settings)
 
         # Initializes initial screen surface
         self.screen = pygame.display.set_mode(
@@ -73,10 +86,7 @@ class Game:
 
     def build_card(self, card_type, card_color):
         card = UnoCard(card_type, card_color)
-        card_view_dta = UnoCardViewData(card)
-        card_view = UnoCardView(card_view_dta)
-
-        return card_view
+        return self.card_view_director.create_card_view(card)
 
 
 if __name__ == "__main__":
