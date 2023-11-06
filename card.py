@@ -299,12 +299,16 @@ class UnoCardViewDirector:
         Parameters
         ----------
         uno_card : UnoCard
-            UnoCard to create the view of.
+            Uno card to create the view of.
+        center_img_dir : string
+            directory path of center image.
+        edge_label : string, optional
+            label that will substitute edge content. The default is None.
 
         Returns
         -------
         UnoCardView
-            View of card.
+            View of created UNO action card.
 
         """
         center_content = self._resource_manager.get_image(center_img_dir)
