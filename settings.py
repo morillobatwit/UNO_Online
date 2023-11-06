@@ -4,10 +4,10 @@ class Settings:
     """A class to store all settings for a UNO game"""
     
     class ImageResources(Enum):
-        SKIP_DIR = 'resources/skip.png'
-        REVERSE_DIR = 'resources/reverse.png'
-        DRAW_TWO_DIR = 'resources/draw_two.png'
-        DRAW_FOUR_DIR = 'resources/draw_four.png'
+        SKIP = 'resources/skip.png'
+        REVERSE = 'resources/reverse.png'
+        DRAW_TWO = 'resources/draw_two.png'
+        WILD = 'resources/draw_four.png'
 
     def __init__(self):
         """Initialize the game's settings."""
