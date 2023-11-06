@@ -216,7 +216,7 @@ class UnoCardViewDirector:
         # WILD
         elif uno_card.type == CardType.WILD:
             return self._create_action_card_view(
-                uno_card, self._image_resources.WILD)
+                uno_card, self._image_resources.WILD, ' ')
         # NUMBER
         else:
             return self._create_number_card_view(uno_card)        
