@@ -24,7 +24,7 @@ def handle_client(cs, addr):
             if message:
                 sendToAll(f"{name}: {message.decode('utf-8')}".encode('utf-8'))
         except:
-            cs.remove(cs)
+            clients.remove(cs)
             usernames.remove(name)
             sendToAll(f"{name} has left the chat.".encode('utf-8'))
             cs.close()
