@@ -14,10 +14,21 @@ class Game:
         self.settings = Settings()
         self.clock = pygame.time.Clock()
         
+        # Initializes initial screen surface
+        self.screen = pygame.display.set_mode(
+            (self.settings.screen_width, self.settings.screen_height))
+        self.screen_rect = self.screen.get_rect()      
+
         # Sets up game resources
         self.resource_manager = ResourceManager()
         for img in self.settings.ImageResources:
             self.resource_manager.add_image(img, pygame.image.load(img.value))
+            
+        # Sets up background
+        self.bg_rect = pygame.Rect((0,0), (
+            self.settings.screen_width, self.settings.screen_height))
+        self.bg = pygame.Surface(self.bg_rect.size, pygame.SRCALPHA)
+        self.bg.fill((0,0,50))
         
         # Card View Builder/Director
         card_builder = UnoCardViewBuilder()
@@ -26,10 +37,7 @@ class Game:
                                                  self.resource_manager,
                                                  self.settings)
 
-        # Initializes initial screen surface
-        self.screen = pygame.display.set_mode(
-            (self.settings.screen_width, self.settings.screen_height))
-        self.screen_rect = self.screen.get_rect()      
+
 
         number_card = self.build_card(CardType.NINE, CardColor.GREEN)
         number_card.rect.topleft = (0, 0)  
@@ -57,7 +65,12 @@ class Game:
         self.card_group.add(reverse_card)
         self.card_group.add(wild_card)
         self.card_group.add(wild4_card)
-
+        
+        self._mouse = pygame.mouse
+        self._mouse_initial_grab_x = None
+        self._mouse_initial_grab_y = None
+        self._card_selected = False
+        
     def run_game(self):
         """The main game loop."""
         while 1:
@@ -77,10 +90,39 @@ class Game:
     def _update_screen(self):
         """Update game instance elements"""
         #self.game_instance.update_state()
+        #print(self._mouse.get_pressed()[0])
+        
+        # Gets the current mouse position
+        mouse_x, mouse_y = self._mouse.get_pos()
+        
+        # Check for collision between the mouse and sprites in the group
+        if self._mouse.get_pressed()[0]:
+            for card in self.card_group:
+                if (card.rect.collidepoint(mouse_x, mouse_y) and 
+                    self._card_selected == None):
+                    self.card_group.remove(card)
+                    self.card_group.add(card)
+                    self._card_selected = card
+                    self._mouse_initial_grab_x = mouse_x
+                    self._mouse_initial_grab_y = mouse_y
+                if not self._card_selected == None:
+                    pos_x = self._card_selected.rect.x + mouse_x - self._mouse_initial_grab_x
+                    pos_y = self._card_selected.rect.y + mouse_y - self._mouse_initial_grab_y
+                    
+                    self._card_selected.set_position(pos_x, pos_y)
+                    self._mouse_initial_grab_x = mouse_x
+                    self._mouse_initial_grab_y = mouse_y
+                
+        else:
+            self._card_selected = None
+                
+                
+        self.card_group.update()
 
     def _draw_screen(self):
         """Draws game instance current screen(state)"""
-        self.card_group.update()
+        self.screen.blit(self.bg, (0, 0))
+        
         self.card_group.draw(self.screen)        
         pygame.display.flip()
 

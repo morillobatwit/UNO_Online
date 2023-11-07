@@ -95,8 +95,7 @@ class UnoCardView(pygame.sprite.Sprite):
         self.image.blit(self._center_content, self._center_content_rect)
         self.image.blit(self.tl_content, self.tl_content_rect)
         self.image.blit(self.br_content, self.br_content_rect) 
-        
-        
+    
     @property
     def uno_card(self):
         return self._uno_card     
@@ -116,7 +115,16 @@ class UnoCardView(pygame.sprite.Sprite):
     @property
     def type(self):
         return self._uno_card.type   
-
+    
+    @property
+    def position(self):
+        return self._position  
+    
+    def set_position(self, x, y):
+        self._position.x = x
+        self._position.y = y
+        self.rect.x = self._position.x
+        self.rect.y = self._position.y
     
 class UnoCardViewBuilder:
     
