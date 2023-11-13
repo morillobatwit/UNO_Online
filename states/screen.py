@@ -66,6 +66,7 @@ class Screen(State):
         """checks events for the screen"""
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                self.game_instance().client.client_socket.close()
                 sys.exit()
                 
             self._check_events(event)
