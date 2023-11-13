@@ -115,10 +115,10 @@ class ServerConnectionDialog(DialogScreen):
        if self.game_instance().client.response_received():
            r = self.game_instance().client.get_response()
            
-           if r == StatusCode.CONNECTION_FAILED:
+           if r.status_code == StatusCode.CONNECTION_FAILED:
                self.update_status_msg("Connection failed, try again.")
                self._buttons[0].set_visibility(True)
-           elif r == StatusCode.CONNECTION_SUCCESS:
+           elif r.status_code == StatusCode.CONNECTION_SUCCESS:
                msg = "Connection successful. Waiting for other players to join..."
                self.update_status_msg(msg)
            elif r.status_code == StatusCode.GAME_START:
