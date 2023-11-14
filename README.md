@@ -4,9 +4,14 @@
 pip install -r requirements.txt
 ```
 
-## Run Test
-Displays card examples
+## Run Server
 
 ```sh
-python run_test.py
+python server.py
+```
+
+## Run Client
+
+```sh
+python game.py
 ```
