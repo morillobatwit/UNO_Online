@@ -1,0 +1,3 @@
+when deck is empty should be replaced with discard pile
+player list
+timeouts

@@ -1,5 +1,5 @@
 import socket
-from status_code import StatusCode, UnoResponse, UnoRequest
+from status_code import StatusCode, UnoMessage
 import pickle
 import threading
 import queue
@@ -21,7 +21,7 @@ class Client:
         try:
             self.client_socket.connect((self.server_address, self.server_port))
             self.is_connected = True
-            r = UnoResponse(StatusCode.CONNECTION_SUCCESS)
+            r = UnoMessage(StatusCode.CONNECTION_SUCCESS)
             
             # Client starts handling server responses
             game_thread = threading.Thread(target=self.handle_responses)
@@ -33,7 +33,7 @@ class Client:
             if hasattr(e, 'code'):
                 print(f"Error Code: {e.code}")
             """
-            r = UnoResponse(StatusCode.CONNECTION_FAILED)
+            r = UnoMessage(StatusCode.CONNECTION_FAILED)
         
         self.result_q.put(r)
         
@@ -47,6 +47,7 @@ class Client:
         while self.is_connected:
             response = self.client_socket.recv(1024)
             uno_response = pickle.loads(response) 
+            self.result_q.put(uno_response)
             
             """
             data = pickle.dumps(StatusCode.IN_TURN)
@@ -56,13 +57,14 @@ class Client:
             data = client_socket.recv(1024)
                         
             reconstructed_data = pickle.loads(data)    
-            """
             if uno_response.status_code == StatusCode.GAME_START:
                 self.result_q.put(uno_response)
             elif uno_response.status_code == StatusCode.INITIAL_DRAW:
                 self.result_q.put(uno_response)
             elif uno_response.status_code == StatusCode.CARD_DRAW:
-                self.result_q.put(uno_response)                
+                self.result_q.put(uno_response) 
+            elif uno_response.status_code == StatusCode.DISCARD_CARD:
+                self.result_q.put(uno_response)             
             elif uno_response.status_code == StatusCode.IN_TURN:
                 # Get card color and type from the user
                 card_color = input("Enter card color (Red, Green, Blue, Yellow): ")
@@ -73,6 +75,7 @@ class Client:
                 self.client_socket.send(card_data.encode('utf-8'))
             elif uno_response.status_code == StatusCode.NOTIFICATION:
                 print(uno_response.data)     
+            """
     
         self.client_socket.close()
         
@@ -80,10 +83,16 @@ class Client:
         self.send_request(StatusCode.INITIAL_DRAW)  
         
     def request_card_draw(self):
-        self.send_request(StatusCode.CARD_DRAW)     
+        self.send_request(StatusCode.CARD_DRAW)  
         
-    def send_request(self, status_code):
-        u_r = pickle.dumps(UnoRequest(status_code))
+    def request_card_play(self, uno_card):
+        self.send_request(StatusCode.CARD_PLAY, uno_card)
+                          
+    def request_discard_card(self):
+        self.send_request(StatusCode.DISCARD_CARD)                              
+        
+    def send_request(self, status_code, dta=None):
+        u_r = pickle.dumps(UnoMessage(status_code, dta))
         self.client_socket.send(u_r)          
         
         

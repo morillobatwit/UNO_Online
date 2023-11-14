@@ -1,4 +1,5 @@
 from states.screen import Screen
+from states.play_screen import PlayScreen
 import pygame
 from gui import IpTextField, Button
 from states.dialog import ServerConnectionDialog
@@ -85,9 +86,16 @@ class StartScreen(Screen):
         server_address = self.textfield_ip.text
         self.textfield_ip.reset()
         
-        cd = ServerConnectionDialog(self.game_instance(), 
+        cd = ServerConnectionDialog(self.game_instance(), self,
                               server_address,
                               self.game_instance().settings.SERVER_PORT)
         self.game_instance().append_screen(cd)   
+        
+    def go_to_play_screen(self):
+        ps = PlayScreen(self.game_instance())
+        # Close Dialog
+        self.game_instance().pop_screen()
+        # Transition to Play Screen
+        self.game_instance().transition_to(ps)          
 
         

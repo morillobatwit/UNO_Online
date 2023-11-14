@@ -52,6 +52,10 @@ class UnoCardView(pygame.sprite.Sprite):
     def uno_card(self):
         return self._uno_card     
     
+    @uno_card.setter
+    def uno_card(self, uno_card):
+        self._uno_card = uno_card
+    
     @property
     def center_content(self):
         return self._center_content      

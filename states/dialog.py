@@ -1,7 +1,6 @@
 import pygame
 from gui import Button
 from states.screen import Screen
-from states.play_screen import PlayScreen
 from status_code import StatusCode
 from card import CardColor
 
@@ -78,10 +77,11 @@ class DialogScreen(Screen):
 class ServerConnectionDialog(DialogScreen):
     """Dialog for client to server connection"""
 
-    def __init__(self, game_instance, server_address, server_port):
+    def __init__(self, game_instance, screen, server_address, server_port):
         """Dialog which manages connection to server"""
         super().__init__(game_instance)
         self.set_background_color((0, 0, 0, 230))
+        self.start_screen = screen
         
         self.set_title("")
         self.update_status_msg(f"Connecting to {server_address}...")
@@ -122,7 +122,7 @@ class ServerConnectionDialog(DialogScreen):
                msg = "Connection successful. Waiting for other players to join..."
                self.update_status_msg(msg)
            elif r.status_code == StatusCode.GAME_START:
-               self.go_to_play_screen()
+               self.start_screen.go_to_play_screen()
         
         
     def update_status_msg(self, status_msg):
@@ -134,12 +134,14 @@ class ServerConnectionDialog(DialogScreen):
         
         self.set_content(new_content)
         
+        """
     def go_to_play_screen(self):
         ps = PlayScreen(self.game_instance())
         # Close Dialog
         self.game_instance().pop_screen()
         # Transition to Play Screen
-        self.game_instance().transition_to(ps)          
+        self.game_instance().transition_to(ps)         
+        """
         
 class ColorPickerDialog(DialogScreen):
     
@@ -161,46 +163,46 @@ class ColorPickerDialog(DialogScreen):
 
         
         # Creates buttons
-        btn_red = self.create_color_button(CardColor.RED.value)
-        btn_green = self.create_color_button(CardColor.GREEN.value)
-        btn_blue = self.create_color_button(CardColor.BLUE.value)  
-        btn_yellow = self.create_color_button(CardColor.YELLOW.value)   
+        btn_red = self.create_color_button(CardColor.RED)
+        btn_green = self.create_color_button(CardColor.GREEN)
+        btn_blue = self.create_color_button(CardColor.BLUE)  
+        btn_yellow = self.create_color_button(CardColor.YELLOW)   
         
         self.set_buttons(*[btn_red, btn_green, btn_blue, btn_yellow])
 
 
-    def create_color_button(self, color):
+    def create_color_button(self, color_type):
         color_darker_ratio = 0.7
         darker_color = (
-         color[0] * color_darker_ratio,
-         color[1] * color_darker_ratio,
-         color[2] * color_darker_ratio)
+         color_type.value[0] * color_darker_ratio,
+         color_type.value[1] * color_darker_ratio,
+         color_type.value[2] * color_darker_ratio)
         
         btn_size = 50
         btn_text_surface = pygame.Surface((1,1))
         btn = ColorButton(
             0, 0, btn_size,
             btn_text_surface,
-            color,
+            color_type,
             darker_color)
         btn.set_on_click_callback(self.color_select_event)
         return btn
 
 
-    def color_select_event(self, color):
-        self.play_screen.color_picked = color
+    def color_select_event(self, color_type):
+        self.play_screen.set_wild_color_pick(color_type)
         self.game_instance().pop_screen()
   
         
 class ColorButton(Button):
-    def __init__(self, x, y, size, text_surface, inactive_color, active_color):
+    def __init__(self, x, y, size, text_surface, color_type, active_color):
         super().__init__(
-            x, y, size, size, text_surface, inactive_color, active_color) 
+            x, y, size, size, text_surface, color_type.value, active_color) 
         
-        self.selection_color = inactive_color
+        self.color_type = color_type
         
     def on_click(self):
-        self.on_click_callback(self.selection_color)        
+        self.on_click_callback(self.color_type)        
   
                
         

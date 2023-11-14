@@ -1,9 +1,10 @@
 import pygame
 from states.screen import Screen
-from card_collections import UnoHand, UnoDeck
-from card import CardColor
+from states.dialog import ColorPickerDialog
+from card_collections import UnoHand
+from card import CardColor, UnoCard
 from card_builder_director import UnoCardViewBuilder, UnoCardViewDirector
-from status_code import StatusCode, UnoResponse
+from status_code import StatusCode
 
 class PlayScreen(Screen):
     """Represents the play screen when the playing happens"""
@@ -17,6 +18,9 @@ class PlayScreen(Screen):
         
         # Request initial cards from server
         self.client.request_initial_cards()
+        
+        # Request initial discard card from server
+        self.client.request_discard_card()
         
         # Sets the background color
         bg_color = self.settings.PLAY_SCREEN_BG_COLOR
@@ -32,28 +36,12 @@ class PlayScreen(Screen):
             self.resource_manager,
             self.settings)
         
-        
-        self._deck = UnoDeck()
-        self._deck.shuffle()
-        
         self._hand = UnoHand(
             pygame.sprite.Group(),
             self.rect.left,
-            self.rect.bottom)
-        """
+            self.rect.bottom)        
         
-        for i in range(7):
-            uno_card = self._deck.draw_card()
-            card_view = self.card_director.create_card_view(uno_card)
-            self._hand.add_card(card_view)
-        """
-            
-        # Sets up first discarded card to start game
-        uno_card = self._deck.draw_card()
-        self.discard_card = self.card_director.create_card_view(uno_card)
-        self.reset_discard_pos()
-        
-        # Creates card view for pile
+        # Creates card view for the deck
         turned_over_card_v = self.resource_manager.render_font(
             "UNO",
             self.settings.CARD_FONT_COLOR,
@@ -66,14 +54,17 @@ class PlayScreen(Screen):
             self.settings.FONT_DIR,
             self.settings.CARD_BACK_FONT_SIZE)
         
-        self.pile = self.card_director.create_custom_card_view(
+        self._deck = self.card_director.create_custom_card_view(
             None, turned_over_card_v, edge_label)
-        self.pile.rect.bottom = self.rect.centery 
-        self.pile.rect.right = self.rect.centerx - 20
+        self._deck.rect.bottom = self.rect.centery 
+        self._deck.rect.right = self.rect.centerx - 20
         
-        self.color_picked =  None
+        self.color_picked = None
         self.mouse_x = self.mouse_y = 0
         self.grabbed_card = None
+        self.in_turn = False
+        self.discard_card = None
+        self.wild_type = None
        
             
     def _check_events(self, event):
@@ -83,19 +74,10 @@ class PlayScreen(Screen):
             
         # if deck is touched request card from server 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if self.pile.rect.collidepoint(event.pos):
+            if self._deck.rect.collidepoint(event.pos) and self.in_turn:
                 self.client.request_card_draw()
+                self.finish_turn()
                
-                
-        if event.type == pygame.KEYDOWN:
-            self.game_instance().client.is_connected = False
-            #sys.exit()
-            
-            """
-            self.game_instance().append_screen(
-                ColorPickerDialog(self.game_instance(), self))
-            """
-            
         if event.type == pygame.MOUSEMOTION:
             # Update mouse position on motion
             self.mouse_x, self.mouse_y = event.pos        
@@ -106,23 +88,31 @@ class PlayScreen(Screen):
         self.handle_server_responses()
         
         for card in self._hand.cards:
-            
             if card.grabbed:
                 self.grabbed_card = card
 
         # If the grabbed_card was dropped
-        if self.grabbed_card and not self.grabbed_card.grabbed:
-            if (pygame.sprite.collide_rect(self.grabbed_card, self.discard_card) and
-                (self.grabbed_card.type == self.discard_card.type or
-                    self.grabbed_card.color == self.discard_card.color or
-                    self.grabbed_card.color == CardColor.DARK)):
+        if (self.grabbed_card and not self.grabbed_card.grabbed):
+            
+            card_collision = pygame.sprite.collide_rect(
+                self.grabbed_card, self.discard_card)
+            # If card was dropped on the discard pile
+            if (self.in_turn and self.discard_card and card_collision and
+                self.card_matches_discard(self.grabbed_card)):
                 self._hand.cards.remove(self.grabbed_card)
-                self.discard_card = self.grabbed_card
-                self.reset_discard_pos()
                 self._hand.x = 0
                 self._hand.organize_cards()
+                
+                if self.grabbed_card.uno_card.color == CardColor.DARK:
+                    self.wild_type = self.grabbed_card.uno_card.type
+                    c_d = ColorPickerDialog(self.game_instance(), self)
+                    self.game_instance().append_screen(c_d)
+                else:
+                    self.client.request_card_play(self.grabbed_card.uno_card)
+                    self.finish_turn()
             else:
                 self.grabbed_card.reset_pos()
+                
             self.grabbed_card = None
                 
         
@@ -150,8 +140,9 @@ class PlayScreen(Screen):
     def blit(self):
         """Draws Plays screen"""
         super().blit()
-        self.draw(self.discard_card.image, rect=self.discard_card.rect)
-        self.draw(self.pile.image, rect=self.pile.rect)
+        if self.discard_card:
+            self.draw(self.discard_card.image, rect=self.discard_card.rect)
+        self.draw(self._deck.image, rect=self._deck.rect)
         self._hand.blitme(self.surface)
         
         
@@ -168,8 +159,36 @@ class PlayScreen(Screen):
                     self._hand.add_card(card_view)
                     
             if r_status_code == StatusCode.CARD_DRAW:
+                for c in r_dta:
+                    card_view = self.card_director.create_card_view(c)
+                    self._hand.add_card(card_view)      
+                
+            if r_status_code == StatusCode.DISCARD_CARD:
                 card_view = self.card_director.create_card_view(r_dta)
-                self._hand.add_card(card_view)                   
+                self.discard_card = card_view
+                print(self.discard_card)
+                self.reset_discard_pos()
+                
+            if r_status_code == StatusCode.CARD_PLAY_NOTIFICATION:
+                card_view = self.card_director.create_card_view(r_dta[1])
+                self.discard_card = card_view
+                self.reset_discard_pos()  
+                
+            if r_status_code == StatusCode.IN_TURN:
+                self.in_turn = True                             
 
+    def card_matches_discard(self, card):
+        return (card.type == self.discard_card.type or
+            card.color == self.discard_card.color or
+            card.color == CardColor.DARK)
+    
+    def finish_turn(self):
+        self.in_turn = False
+            
+    def set_wild_color_pick(self, color_type):
+        self.client.request_card_play(UnoCard(self.wild_type, color_type))
+        self.wild_type = None
+        self.finish_turn()
+        
         
 
