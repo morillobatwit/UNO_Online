@@ -229,11 +229,9 @@ class PlayScreen(Screen):
         
     def play_card(self, uno_card):
         winning_card = False
-        print(f'aaaaaaaaaaaaaaaaaaaaaaa{self._hand.cards.sprites()}')
         if not self._hand.cards.sprites():
             winning_card = True
             
-        print(f'{winning_card}') 
         self.client.request_card_play(uno_card, winning_card)
         
     def set_player_list(self, names, player_in_turn):
