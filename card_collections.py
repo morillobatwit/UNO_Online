@@ -30,6 +30,9 @@ class UnoDeck:
 
     def __len__(self):
         return len(self._cards)
+    
+    def add(self, uno_card):
+        self._cards.add(uno_card)  
 
     @property
     def cards(self):

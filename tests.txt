@@ -1,1 +1,0 @@
-bytes to receive had to be increased to 1024 isntead of 256 because the list sent for the initial draw was more than 1024

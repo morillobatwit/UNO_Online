@@ -13,7 +13,8 @@ class DialogScreen(Screen):
         self.set_background_color((0, 0, 0, 100))
         self.resource_manager = game_instance.resource_manager
         self.settings = game_instance.settings
-        self._title = self._content_surface = self._buttons = None
+        self._title = self._content_surface = None
+        self._buttons = []
 
     def set_title(self, text):
         self._title = self.resource_manager.render_font(
@@ -203,6 +204,30 @@ class ColorButton(Button):
         
     def on_click(self):
         self.on_click_callback(self.color_type)        
+        
+        
+class GameEndingDialog(DialogScreen):
+    
+    def __init__(self, game_instance, client_name, winner):
+        super().__init__(game_instance)
+        title = ""
+        if client_name == winner:
+             title = "You Won"
+        else:
+             title = "You Lost"
+            
+        self.set_title(title)       
+        
+        content = self.resource_manager.render_font(
+            f'{winner} was the winner',
+            self.settings.CARD_FONT_COLOR,
+            self.settings.FONT_DIR,
+            35)
+        
+        self.set_content(content)
+            
+            
+    
   
                
         

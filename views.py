@@ -106,3 +106,39 @@ class UnoCardView(pygame.sprite.Sprite):
     def reset_pos(self):
             self.rect.x = self._initial_pos.x
             self.rect.y = self._initial_pos.y
+            
+class VerticalListView:
+    
+    def __init__(self, x, y):
+        self._item_list = []
+        self._x = x
+        self._y = y
+
+        
+    def blitme(self, surface):
+        for e in self._item_list:
+            surface.blit(e.surface, e.rect)
+        
+    def append(self, surface):
+        s_rect = surface.get_rect()
+        s_rect.x = self._x
+        
+        if self._item_list:
+            s_rect.y = self._item_list[-1].rect.bottom
+        else:
+            s_rect.y = self._y
+            
+        self._item_list.append(ListItemView(surface, s_rect))
+        
+class ListItemView:  
+    def __init__(self, surface, surface_rect):
+        self.surface = surface
+        self.rect = surface_rect
+        
+        
+
+
+
+
+
+            

@@ -4,12 +4,11 @@ class StatusCode(Enum):
     CONNECTION_FAILED = 0
     CONNECTION_SUCCESS = 1
     GAME_START = 2
-    IN_TURN = 3
-    DISCARD_CARD = 4
-    CARD_DRAW = 5
-    INITIAL_DRAW = 6
-    CARD_PLAY = 7
-    CARD_PLAY_NOTIFICATION = 8
+    GAME_STATE = 3
+    CARD_DRAW = 4
+    INITIAL_DRAW = 5
+    CARD_PLAY = 6
+    ACK = 7
 
 class UnoMessage:
     def __init__(self, status_code, data=None):

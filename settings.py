@@ -56,3 +56,8 @@ class Settings:
         self.DRAW_TWO_EDGE_CONTENT = '+2'
         self.DRAW_FOUR_EDGE_CONTENT = '+4'
         
+        # Player Name List
+        self.PLAYER_LIST_FONT_SIZE = 30
+        self.PLAYER_LIST_FONT_COLOR = (255, 255, 255)
+        self.PLAYER_LIST_IN_TURN_COLOR = (0, 255, 0)
+        
