@@ -17,7 +17,7 @@ class Server:
         self.pending_acknoledgements = []
         self.apply_card_effects = False
         self.game_won = False
-        self.num_players = 5
+        self.num_players = num_players
         host_address = Server.LOCAL_IP_ADDRESS
         
         # game variables
