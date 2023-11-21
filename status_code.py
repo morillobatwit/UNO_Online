@@ -8,7 +8,6 @@ class StatusCode(Enum):
     CARD_DRAW = 4
     INITIAL_DRAW = 5
     CARD_PLAY = 6
-    ACK = 7
 
 class UnoMessage:
     def __init__(self, status_code, data=None):

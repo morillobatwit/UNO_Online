@@ -59,7 +59,7 @@ class Client:
                 if not self.pending_responses:
                     self.client_socket.settimeout(None)
                 
-                response = self.client_socket.recv(4096)
+                response = self.client_socket.recv(512)
                 uno_response = pickle.loads(response) 
                 self.result_q.put(uno_response)
                 

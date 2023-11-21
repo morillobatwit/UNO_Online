@@ -27,8 +27,6 @@ class PlayScreen(Screen):
         # Request initial cards from server
         self.client.request_initial_cards()
         
-        # Request initial discard card from server
-        # self.client.request_discard_card()
         
         # Request initial game status(player in turn, player list) from server
         self.client.request_game_status()
@@ -161,29 +159,12 @@ class PlayScreen(Screen):
             r_status_code = u_response.status_code
             r_dta = u_response.data
             
-            """
-            if r_status_code == StatusCode.INITIAL_DRAW:
-                for card in r_dta:
-                    card_view = self.card_director.create_card_view(card)
-                    self._hand.add_card(card_view)
-                    """
                     
             if r_status_code == StatusCode.CARD_DRAW:
                 for c in r_dta:
                     card_view = self.card_director.create_card_view(c)
                     self._hand.add_card(card_view)     
-            """
-            if r_status_code == StatusCode.DISCARD_CARD:
-                card_view = self.card_director.create_card_view(r_dta)
-                self.discard_card = card_view
-                self.reset_discard_pos()
-                
-            if r_status_code == StatusCode.CARD_PLAY_NOTIFICATION:
-                card_view = self.card_director.create_card_view(r_dta[1])
-                self.discard_card = card_view
-                self.reset_discard_pos()  
-                self.client.request_game_status()
-            """
+
                 
             if r_status_code == StatusCode.GAME_STATE:
                 player_in_turn_idx = r_dta[0]

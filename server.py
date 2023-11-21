@@ -2,19 +2,14 @@ import socket
 from status_code import StatusCode, UnoMessage
 import pickle
 import threading
-import queue
-import time
-from card import CardColor, CardType 
+from card import CardType 
 from card_collections import UnoDeck
-
-# Server configuration
-SERVER_IP = "127.0.0.1"
-SERVER_PORT = 1234
-#MAX_PLAYERS = 2
+import requests
 
 class Server:
+    LOCAL_IP_ADDRESS = '127.0.0.1'
 
-    def __init__(self, num_players):
+    def __init__(self, server_address, port, num_players):
         # variables to store player information
         self.player_turn = 0
         self.players = []
@@ -22,17 +17,22 @@ class Server:
         self.pending_acknoledgements = []
         self.apply_card_effects = False
         self.game_won = False
-        self.num_players = num_players
+        self.num_players = 5
+        host_address = Server.LOCAL_IP_ADDRESS
         
         # game variables
         self._deck = self._discarded_pile = None
         self.turn_increase = 1
         
+        # Sets up server ip address
+        if not host_address == server_address:
+            host_address = '0.0.0.0'
+        
         # Initialize the server socket
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.bind((SERVER_IP, SERVER_PORT))
+        self.server_socket.bind((host_address, port))
         self.server_socket.listen(self.num_players)
-        print(f"Server is listening on {SERVER_IP}:{SERVER_PORT}")
+        print(f"Server is listening on {server_address}:{port}")
         
     def run(self):
         # Accept and handle incoming connections
@@ -42,12 +42,6 @@ class Server:
             print(f"Player {len(self.players)} connected from {addr}")
             print(f"peer: {client_socket.getpeername()}")
             
-            """
-            # Start a new thread to handle the client
-            client_handler = threading.Thread(target=handle_client_requests, args=(client_socket, turn_assign))
-            client_handler.start()
-            turn_assign = turn_assign + 1 
-            """
         # Makes a list of player names
         for player in self.players:
             self.usernames.append(str(player.getpeername()))
@@ -72,8 +66,6 @@ class Server:
                 target=self.handle_client_requests, args=(player,))
             client_handler.start()
             
-        # Starts first players turn          
-        #self.next_turn()
             
     def broadcast(self, status_code, dta):
         for player in self.players:
@@ -110,7 +102,7 @@ class Server:
                 if not self.pending_acknoledgements:
                     client_socket.settimeout(None)
                     
-                request = client_socket.recv(4096)
+                request = client_socket.recv(512)
                 
                 uno_msg = pickle.loads(request)
                 
@@ -160,10 +152,6 @@ class Server:
             self.game_won = uno_msg.data[1]
             self._discarded_pile.append(card_played)
             self.apply_card_effects = True
-            #status_code = StatusCode.CARD_PLAY_NOTIFICATION
-            #dta = [client_socket.getpeername(), self.top_discarded_card()]
-            #self.broadcast(status_code, dta)
-            #self.handle_card_effects(client_socket, self.top_discarded_card())
             self.next_turn()
             
         elif status_code == StatusCode.GAME_STATE:
@@ -173,14 +161,8 @@ class Server:
             self.send_response(client_socket, u)   
             self.pending_acknoledgements.append(u)
             client_socket.settimeout(1)
+
             
-        """
-        elif status_code == StatusCode.DISCARD_CARD:
-            uno_card = self.top_discarded_card()
-            u = UnoMessage(StatusCode.DISCARD_CARD, uno_card)
-            self.send_response(client_socket, u)
-        """            
-                
     def send_response(self, client_socket, uno_message):   
         r_dta = pickle.dumps(uno_message)
         print(f'SENDING : {uno_message.status_code}')
@@ -230,18 +212,50 @@ class Server:
         return self._deck.draw_card()
             
         
-            
+        
+def get_public_ip():
+    try:
+        # Make a request to httpbin to get the public IP address
+        response = requests.get('https://httpbin.org/ip')
+        
+        # Parse the JSON response to get the IP address
+        ip_address = response.json()['origin']
+        
+        return ip_address
+    except requests.RequestException as e:
+        print(f"Error: {e}")
+        return None        
             
             
 if __name__ == "__main__":
+    # Server configuration
+    # Sets server address 
+    host_address_option = -1
+    host_address = ""
+    p_ip = str(get_public_ip())
+    local_address = Server.LOCAL_IP_ADDRESS
+    
+    while not host_address_option == 0 and not host_address_option == 1:
+        host_address_option = int(input(f'\
+[0] run the server on {p_ip} (Public IP)\n\
+[1] run the server on the localhost\n\
+Input 0 or 1: '))
+
+    if host_address_option == 1:
+        host_address = local_address
+    else:
+        host_address = p_ip
+        
+    # Sets the ammount of player that will play
     num_players = 0
-    # Make a game instance, and run the game.
     while num_players < 2 or num_players > 10:
         num_players = int(input(
-            'Please input the amount of players(2-10) | inclusive: '))
+            '\nInput the amount of players(2-10) | inclusive: '))
     
-    server = Server(num_players)
+    # Make a game instance, and run the game.
+    server = Server(host_address, 1234, num_players)
     server.run()    
+
 
 
 
