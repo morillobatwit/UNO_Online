@@ -4,6 +4,16 @@ class Settings:
     """A class to store all settings for a UNO game"""
     
     class ImageResources(Enum):
+        """
+        Enumeration of image resources used in the game.
+        
+        Attributes:
+            SKIP (str): Path to the image resource for Skip card.
+            REVERSE (str): Path to the image resource for Reverse card.
+            DRAW_TWO (str): Path to the image resource for Draw Two card.
+            DRAW_FOUR (str): Path to the image resource for Draw Four card.
+            WILD (str): Path to the image resource for Wild card.
+        """        
         SKIP = 'resources/skip.png'
         REVERSE = 'resources/reverse.png'
         DRAW_TWO = 'resources/draw_two.png'
@@ -30,7 +40,6 @@ class Settings:
         self.IP_TF_WIDTH = self.IP_TF_FONT_SIZE * 8 # 8 seemed like a correct multiplier
         self.IP_TF_HEIGHT = 50
         self.IP_TF_MAX_CHARACTERS = 15
-        
         
         # Start Screen
         self.PLAY_SCREEN_BG_COLOR = (25, 0, 51, 255)

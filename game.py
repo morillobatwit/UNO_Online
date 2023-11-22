@@ -3,12 +3,15 @@ from game_instance import GameInstance
 from settings import Settings
 from resource_manager import ResourceManager
 
-
 class Game:
-    """Template class for PyGame."""
+    """
+    Template class for a PyGame game.
+    """
 
     def __init__(self):
-        """Initializes the game's instance."""
+        """
+        Initializes the game's instance.
+        """
         pygame.init()
         self._settings = Settings()
         self._resource_manager = ResourceManager()
@@ -21,7 +24,9 @@ class Game:
         self.clock = pygame.time.Clock()
 
     def run_game(self):
-        """The main game loop."""
+        """
+        The main game loop.
+        """
         while 1:
             self._check_events()
             self._update_screen()

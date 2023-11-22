@@ -5,10 +5,17 @@ from status_code import StatusCode
 from card import CardColor
 
 class DialogScreen(Screen):
-    """Screen in charge of displaying a dialog"""
-
+    """
+    A class representing a dialog screen in a game.
+    """
+    
     def __init__(self, game_instance):
-        """Initializes three available perks"""
+        """
+        Initializes a new instance of the DialogScreen class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+        """        
         super().__init__(game_instance)
         self.set_background_color((0, 0, 0, 100))
         self.resource_manager = game_instance.resource_manager
@@ -17,6 +24,12 @@ class DialogScreen(Screen):
         self._buttons = []
 
     def set_title(self, text):
+        """
+        Sets the title of the dialog screen.
+
+        Args:
+            text (str): The text to be displayed as the title.
+        """        
         self._title = self.resource_manager.render_font(
             text,
             self.settings.CARD_FONT_COLOR,
@@ -26,15 +39,31 @@ class DialogScreen(Screen):
         self.organize_content()  
         
     def set_content(self, content_surface):
+        """
+        Sets the content of the dialog screen.
+
+        Args:
+            content_surface (Surface): 
+                The surface containing the content to be displayed.
+        """        
         self._content_surface = content_surface
         self._content_surf_rect = self._content_surface.get_rect()  
         self.organize_content()    
         
     def set_buttons(self, *args):
+        """
+        Sets the buttons for the dialog screen.
+
+        Args:
+            *args: Variable number of Button objects to be displayed.
+        """        
         self._buttons = args
         self.organize_content()  
             
     def organize_content(self):
+        """
+        Organizes the layout of the dialog screen components, including title, content, and buttons.
+        """        
         if self._title:
             self._title_rect.centerx = self.rect.centerx
             self._title_rect.y = self.get_height() / 4
@@ -54,9 +83,15 @@ class DialogScreen(Screen):
                 offset_x = button.rect.right + margin
             
     def update(self):
+        """
+        Placeholder for any update logic needed for the dialog screen.
+        """        
         pass
 
     def blit(self):
+        """
+        Renders and displays the dialog screen components.
+        """        
         super().blit()
         if self._title:
             self.draw(self._title, rect=self._title_rect)
@@ -66,20 +101,31 @@ class DialogScreen(Screen):
     
         for button in self._buttons:            
             button.blitme(self.surface)          
-            
-        #self.textfield_ip.blitme(self.surface)
-        #self.btn_join.blitme(self.surface)
         
     def _check_events(self, event):
-        """Respond to base keypresses and mouse events."""
+        """
+        Checks events related to the dialog screen buttons and handles them.
+    
+        Args:
+            event (Event): The event to be processed.
+        """        
         for button in self._buttons:            
             button.handle_event(event) 
         
 class ServerConnectionDialog(DialogScreen):
-    """Dialog for client to server connection"""
-
+    """
+    A specialized dialog screen for handling server connection attempts in a game.
+    """
     def __init__(self, game_instance, screen, server_address, server_port):
-        """Dialog which manages connection to server"""
+        """
+        Initializes a new instance of the ServerConnectionDialog class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+            screen (Screen): The screen to navigate to after successful server connection.
+            server_address (str): The address of the server to connect to.
+            server_port (int): The port number for the server connection.
+        """        
         super().__init__(game_instance)
         self.set_background_color((0, 0, 0, 230))
         self.start_screen = screen
@@ -87,6 +133,7 @@ class ServerConnectionDialog(DialogScreen):
         self.set_title("")
         self.update_status_msg(f"Connecting to {server_address}...")
         
+        # Create "Back" button
         btn_back_x = 0
         btn_back_y = 0
         btn_back_w = 100
@@ -109,11 +156,18 @@ class ServerConnectionDialog(DialogScreen):
         game_instance.client.connect_to_server(server_address, server_port)
         
     def back_event(self):
-       self.game_instance().pop_screen()
-     
+        """
+        Event handler for the "Back" button, 
+        pops the current screen from the game's screen stack.
+        """
+        self.game_instance().pop_screen()
+
     def update(self):
-       # Updates connection status message once connection response received
-       if self.game_instance().client.response_received():
+        """
+        Updates the connection status message based 
+        on the received server response.
+        """        
+        if self.game_instance().client.response_received():
            r = self.game_instance().client.get_response()
            
            if r.status_code == StatusCode.CONNECTION_FAILED:
@@ -127,6 +181,12 @@ class ServerConnectionDialog(DialogScreen):
         
         
     def update_status_msg(self, status_msg):
+        """
+        Updates the content of the dialog screen with a new status message.
+
+        Args:
+            status_msg (str): The new status message to be displayed.
+        """        
         new_content = self.resource_manager.render_font(
             status_msg,
             self.settings.CARD_FONT_COLOR,
@@ -135,19 +195,18 @@ class ServerConnectionDialog(DialogScreen):
         
         self.set_content(new_content)
         
-        """
-    def go_to_play_screen(self):
-        ps = PlayScreen(self.game_instance())
-        # Close Dialog
-        self.game_instance().pop_screen()
-        # Transition to Play Screen
-        self.game_instance().transition_to(ps)         
-        """
-        
 class ColorPickerDialog(DialogScreen):
-    
+    """
+    A dialog for managing color picking in a game.
+    """
     def __init__(self, game_instance, screen):
-        """Dialog which manages color picking"""
+        """
+        Initializes a new instance of the ColorPickerDialog class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+            screen (Screen): The screen where color changes will be applied.
+        """
         super().__init__(game_instance)
         
         self.play_screen = screen
@@ -173,6 +232,15 @@ class ColorPickerDialog(DialogScreen):
 
 
     def create_color_button(self, color_type):
+        """
+        Creates a color button based on the specified card color type.
+
+        Args:
+            color_type (CardColor): The color type for the button.
+
+        Returns:
+            ColorButton: The created color button.
+        """        
         color_darker_ratio = 0.7
         darker_color = (
          color_type.value[0] * color_darker_ratio,
@@ -191,24 +259,58 @@ class ColorPickerDialog(DialogScreen):
 
 
     def color_select_event(self, color_type):
+        """
+        Event handler for color selection, sets the wild color for the play screen.
+
+        Args:
+            color_type (CardColor): The selected color type.
+        """        
         self.play_screen.set_wild_color_pick(color_type)
         self.game_instance().pop_screen()
   
         
 class ColorButton(Button):
+    """
+    A specialized button class for handling color selection.
+    """
     def __init__(self, x, y, size, text_surface, color_type, active_color):
+        """
+        Initializes a new instance of the ColorButton class.
+
+        Args:
+            x (int): The x-coordinate of the button's top-left corner.
+            y (int): The y-coordinate of the button's top-left corner.
+            size (int): The size of the button (both width and height).
+            text_surface (Surface): The surface containing the button's text.
+            color_type (CardColor): The color type associated with the button.
+            active_color (tuple): The color of the button when it is active.
+        """        
         super().__init__(
             x, y, size, size, text_surface, color_type.value, active_color) 
         
         self.color_type = color_type
         
     def on_click(self):
+        """
+        Overrides the on_click method to handle color selection events.
+        """        
         self.on_click_callback(self.color_type)        
         
         
 class GameEndingDialog(DialogScreen):
+    """
+    A dialog screen displayed at the end of the game to announce the winner.
+    """
     
     def __init__(self, game_instance, client_name, winner):
+        """
+        Initializes a new instance of the GameEndingDialog class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+            client_name (str): The name of the client player.
+            winner (str): The name of the winning player.
+        """        
         super().__init__(game_instance)
         title = ""
         if client_name == winner:

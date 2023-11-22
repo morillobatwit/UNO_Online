@@ -5,7 +5,16 @@ from gui import IpTextField, Button
 from states.dialog import ServerConnectionDialog
 
 class StartScreen(Screen):
+    """
+    Represents the starting screen of the UNO Online game.
+    """    
     def __init__(self, game_instance):
+        """
+        Initializes a new instance of the StartScreen class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+        """        
         super().__init__(game_instance)
         
         # Sets the background color
@@ -67,9 +76,16 @@ class StartScreen(Screen):
         
         
     def update(self):
+        """
+        Placeholder method for updating the screen.
+
+        """        
         pass
 
     def blit(self):
+        """
+        Draws the components of the start screen.
+        """        
         super().blit()
         self.draw(self.main_title, rect=self.main_title_rect)
         self.textfield_ip.blitme(self.surface)
@@ -77,12 +93,21 @@ class StartScreen(Screen):
 
         
     def _check_events(self, event):
-        """Respond to base keypresses and mouse events."""
+        """
+        Responds to base keypresses and mouse events.
+
+        Args:
+            event: The event to handle.
+        """
         self.textfield_ip.handle_event(event)
         self.btn_join.handle_event(event)   
         
         
     def join_event(self):
+        """
+        Handles the join event, 
+        creating a ServerConnectionDialog and transitioning to it.
+        """        
         server_address = self.textfield_ip.text
         self.textfield_ip.reset()
         
@@ -92,6 +117,9 @@ class StartScreen(Screen):
         self.game_instance().append_screen(cd)   
         
     def go_to_play_screen(self):
+        """
+        Transitions to the PlayScreen after initializing it.
+        """        
         ps = PlayScreen(self.game_instance())
         # Close Dialog
         self.game_instance().pop_screen()

@@ -8,10 +8,15 @@ from status_code import StatusCode
 from views import VerticalListView
 
 class PlayScreen(Screen):
-    """Represents the play screen when the playing happens"""
+    """Represents the play screen where the game is played."""
 
     def __init__(self, game_instance):
-        """Initializes play screen"""
+        """
+        Initializes a new instance of the PlayScreen class.
+
+        Args:
+            game_instance (GameInstance): An instance of the game.
+        """
         super().__init__(game_instance)
         self.color_picked = None
         self.mouse_x = self.mouse_y = 0
@@ -70,7 +75,12 @@ class PlayScreen(Screen):
         
             
     def _check_events(self, event):
-        """Respond to base keypresses and mouse events."""
+        """
+        Responds to base keypresses and mouse events.
+
+        Args:
+            event (Event): The event to be processed.
+        """
         for card in self._hand.cards:
             card.handle_event(event)
             
@@ -86,7 +96,9 @@ class PlayScreen(Screen):
                 
                 
     def update(self):
-        """Updates Play Screen"""
+        """
+        Updates the Play Screen, handling server responses, card movements, and turn actions.
+        """
         self.handle_server_responses()
         
         for card in self._hand.cards:
@@ -105,6 +117,7 @@ class PlayScreen(Screen):
                 self._hand.x = 0
                 self._hand.organize_cards()
                 
+                # Validate if it is a wild card
                 if self.grabbed_card.uno_card.color == CardColor.DARK:
                     self.wild_type = self.grabbed_card.uno_card.type
                     c_d = ColorPickerDialog(self.game_instance(), self)
@@ -137,11 +150,17 @@ class PlayScreen(Screen):
                 self._hand.x += 6
                 
     def reset_discard_pos(self):
+        """
+        Resets the position of the discard pile.
+        """        
         self.discard_card.rect.bottom = self.rect.centery
         self.discard_card.rect.left = self.rect.centerx + 20
         
     def blit(self):
-        """Draws Plays screen"""
+        """
+        Draws the Play screen, including the discard pile, 
+        deck, player's hand, and player list.
+        """
         super().blit()
         if self.discard_card:
             self.draw(self.discard_card.image, rect=self.discard_card.rect)
@@ -152,7 +171,11 @@ class PlayScreen(Screen):
             self.player_list.blitme(self.surface)
         
         
-    def handle_server_responses(self):        
+    def handle_server_responses(self):     
+        """
+        Handles responses received from the game server, 
+        updating the game state accordingly.
+        """        
         # Updates connection status message once connection response received
         if self.game_instance().client.response_received():
             u_response = self.game_instance().client.get_response()
@@ -195,20 +218,43 @@ class PlayScreen(Screen):
                         
 
     def card_matches_discard(self, card):
+        """
+        Checks if the provided card matches the discard pile's criteria for play.
+
+        Args:
+            card (UnoCardView): The card to be checked.
+
+        Returns:
+            bool: True if the card matches the criteria, False otherwise.
+        """        
         return (card.type == self.discard_card.type or
             card.color == self.discard_card.color or
             card.color == CardColor.DARK)
     
     def finish_turn(self):
-        self.in_turn = False
-        #self.client.request_game_status()
+        """
+        Ends the player's turn.
+        """
             
     def set_wild_color_pick(self, color_type):
+        """
+        Sets the wild color for the player's turn.
+
+        Args:
+            color_type (CardColor): The color chosen by 
+            the player for the wild card.
+        """        
         self.play_card(UnoCard(self.wild_type, color_type))
         self.wild_type = None
         self.finish_turn()
         
     def play_card(self, uno_card):
+        """
+        Initiates the request to play a card to the game server.
+
+        Args:
+            uno_card (UnoCard): The Uno card to be played.
+        """        
         winning_card = False
         if not self._hand.cards.sprites():
             winning_card = True
@@ -216,9 +262,16 @@ class PlayScreen(Screen):
         self.client.request_card_play(uno_card, winning_card)
         
     def set_player_list(self, names, player_in_turn):
+        """
+        Sets the player list on the play screen,
+        highlighting the player whose turn it is.
+
+        Args:
+            names (list): List of player names.
+            player_in_turn (str): The player whose turn it is.
+        """        
         font_size = self.settings.PLAYER_LIST_FONT_SIZE
         text_color = None
-        
         
         self.player_list = VerticalListView(self.rect.x, self.rect.y)  
         
