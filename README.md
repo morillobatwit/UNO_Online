@@ -9,9 +9,11 @@ pip install -r requirements.txt
 ```sh
 python server.py
 ```
+Choose type of network and amount of players
 
 ## Run Client
 
 ```sh
 python game.py
 ```
+Insert server IP address and hit join
