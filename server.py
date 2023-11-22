@@ -32,7 +32,7 @@ class Server:
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.bind((host_address, port))
         self.server_socket.listen(self.num_players)
-        print(f"Server is listening on {server_address}:{port}")
+        print(f"\nServer is listening on {server_address}:{port}")
         
     def run(self):
         # Accept and handle incoming connections
@@ -213,18 +213,23 @@ class Server:
             
         
         
-def get_public_ip():
+def get_local_ipv4():
+    # Create a socket object
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
     try:
-        # Make a request to httpbin to get the public IP address
-        response = requests.get('https://httpbin.org/ip')
+        # Connect to any remote server (doesn't actually send data)
+        s.connect(('8.8.8.8', 80))
+        # Get the local IP address from the connected socket
+        local_ip = s.getsockname()[0]
+    except socket.error:
+        local_ip = Server.LOCAL_IP_ADDRESS  # Default to localhost if unable to connect
+
+    finally:
+        # Close the socket
+        s.close()   
         
-        # Parse the JSON response to get the IP address
-        ip_address = response.json()['origin']
-        
-        return ip_address
-    except requests.RequestException as e:
-        print(f"Error: {e}")
-        return None        
+    return local_ip
             
             
 if __name__ == "__main__":
@@ -232,19 +237,20 @@ if __name__ == "__main__":
     # Sets server address 
     host_address_option = -1
     host_address = ""
-    p_ip = str(get_public_ip())
+    local_ipv4 = get_local_ipv4()
     local_address = Server.LOCAL_IP_ADDRESS
     
     while not host_address_option == 0 and not host_address_option == 1:
-        host_address_option = int(input(f'\
-[0] run the server on {p_ip} (Public IP)\n\
-[1] run the server on the localhost\n\
-Input 0 or 1: '))
+        host_address_option = int(input(
+        (f'[0] Run the server on {local_ipv4} (IPv4)\n'
+         '[1] Run the server on localhost\n'
+         'Input 0 or 1: ')
+        ))
 
     if host_address_option == 1:
         host_address = local_address
     else:
-        host_address = p_ip
+        host_address = local_ipv4
         
     # Sets the ammount of player that will play
     num_players = 0
